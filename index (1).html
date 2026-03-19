@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAYDAY — Expense Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #00ff88;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --danger: #ff3b5c;
+    --warning: #ffb700;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(0,255,136,0.05) 0%, transparent 70%);
+    top: -300px; right: -200px;
+    pointer-events: none; z-index: 0;
+    animation: orbFloat 10s ease-in-out infinite;
+  }
+
+  @keyframes orbFloat {
+    0%,100% { transform: translate(0,0); }
+    50% { transform: translate(-40px, 40px); }
+  }
+
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header { padding: 28px 0 22px; border-bottom: 1px solid var(--border); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+
+  .logo { font-size: 26px; font-weight: 800; letter-spacing: -1px; display: flex; align-items: center; gap: 10px; }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 12px var(--accent);} 50%{opacity:.5;box-shadow:0 0 22px var(--accent);} }
+  .logo span { color: var(--accent); }
+
+  .header-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat-pill { background: var(--card); border: 1px solid var(--border); border-radius: 100px; padding: 7px 16px; font-family: 'Space Mono', monospace; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .stat-pill .lbl { color: var(--muted); font-size: 10px; }
+  .stat-pill .val { color: var(--accent); font-weight: 700; }
+  .stat-pill.red .val { color: var(--danger); }
+  .stat-pill.yellow .val { color: var(--warning); }
+
+  /* PAYDAY BANNER */
+  .payday-banner { background: linear-gradient(135deg,rgba(0,255,136,.07),rgba(124,58,237,.07)); border: 1px solid rgba(0,255,136,.18); border-radius: 18px; padding: 20px 26px; margin: 26px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; position: relative; overflow: hidden; }
+  .payday-banner::before { content:''; position:absolute; left:0;top:0;bottom:0; width:4px; background:var(--accent); border-radius:4px 0 0 4px; }
+  .payday-info h2 { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .days-left { font-size: 34px; font-weight: 800; color: var(--accent); font-family: 'Space Mono', monospace; line-height: 1; }
+  .days-sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .payday-schedule { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pay-chip { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; text-align: center; min-width: 100px; transition: .2s; }
+  .pay-chip.next { border-color: var(--accent); background: rgba(0,255,136,.06); }
+  .pay-chip .pdate { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); }
+  .pay-chip .pamount { font-size:17px; font-weight:700; color:var(--text); margin-top:3px; }
+  .pay-chip.next .pamount { color:var(--accent); }
+  .pay-chip .plabel { font-size:9px; color:var(--muted); margin-top:2px; letter-spacing:1px; text-transform:uppercase; }
+
+  /* GITHUB BAR */
+  .github-bar { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 22px; margin-bottom:26px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .gh-info { display:flex; align-items:center; gap:12px; }
+  .gh-icon { width:34px;height:34px; background:var(--surface); border:1px solid var(--border); border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:17px; }
+  .gh-text h3 { font-size:13px; font-weight:700; }
+  .gh-text p { font-size:11px; color:var(--muted); margin-top:2px; font-family:'Space Mono',monospace; }
+  .gh-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .gh-actions input { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 11px; color:var(--text); font-family:'Space Mono',monospace; font-size:11px; outline:none; transition:.2s; }
+  .gh-actions input:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,255,136,.1); }
+  .gh-actions input::placeholder { color:var(--muted); }
+  .sync-status { font-size:11px; color:var(--muted); font-family:'Space Mono',monospace; display:flex; align-items:center; gap:6px; }
+  .sdot { width:6px;height:6px;border-radius:50%;background:var(--muted); }
+  .sdot.on { background:var(--accent); box-shadow:0 0 6px var(--accent); }
+  .sdot.err { background:var(--danger); }
+  .btn-xs { padding:7px 14px; font-size:11px; border-radius:7px; font-family:'Syne',sans-serif; font-weight:700; cursor:pointer; border:none; transition:.2s; letter-spacing:.5px; white-space:nowrap; }
+  .btn-outline { background:var(--surface); border:1px solid var(--border); color:var(--text); }
+  .btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-green { background:var(--accent); color:#0a0a0f; }
+  .btn-green:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,255,136,.3); }
+  .btn-green:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn-outline:disabled { opacity:.4; cursor:not-allowed; }
+
+  /* GRID */
+  .main-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:28px; }
+  @media(max-width:720px){ .main-grid{grid-template-columns:1fr;} }
+
+  /* PANELS */
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
+  .panel-hdr { padding:18px 22px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .ptitle { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .picon { width:26px;height:26px; background:var(--surface); border-radius:7px; display:flex;align-items:center;justify-content:center; font-size:13px; }
+  .pbody { padding:18px 22px; }
+
+  /* FORM */
+  .frow { margin-bottom:14px; }
+  label { display:block; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+  input[type=text],input[type=number],input[type=date],input[type=password],select {
+    width:100%; background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:10px 13px;
+    color:var(--text); font-family:'Space Mono',monospace; font-size:13px; outline:none; transition:.2s;
+  }
+  input:focus,select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,.09); }
+  input::placeholder { color:var(--muted); }
+  select option { background:var(--surface); }
+
+  .btn-add { width:100%; padding:12px; border:none; border-radius:9px; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; letter-spacing:1px; cursor:pointer; background:var(--accent); color:#0a0a0f; transition:.2s; }
+  .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(0,255,136,.28); }
+  .btn-add:active { transform:translateY(0); }
+
+  /* THURSDAY HINT */
+  .thu-hint { background:rgba(124,58,237,.08); border:1px solid rgba(124,58,237,.2); border-radius:9px; padding:9px 13px; font-size:11px; color:var(--muted); margin-bottom:14px; display:flex; align-items:center; gap:7px; }
+
+  /* EXPENSE ITEMS */
+  .expense-list { display:flex; flex-direction:column; gap:9px; }
+  .exp-item { background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; transition:.25s; animation:slideIn .3s ease; cursor:pointer; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
+  .exp-item:hover { border-color:var(--accent); transform:translateX(4px); }
+  .exp-item.paid { opacity:.45; }
+  .exp-item.paid .ename { text-decoration:line-through; }
+  .exp-left { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+  .exp-ico { width:34px;height:34px; border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; background:var(--card); }
+  .exp-info { min-width:0; }
+  .ename { font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .emeta { font-size:10px; color:var(--muted); margin-top:2px; font-family:'Space Mono',monospace; }
+  .exp-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .eamt { font-family:'Space Mono',monospace; font-size:14px; font-weight:700; color:var(--accent2); }
+  .ubadge { font-size:9px; font-weight:700; letter-spacing:.5px; padding:2px 7px; border-radius:5px; text-transform:uppercase; }
+  .uc { background:rgba(255,59,92,.13); color:var(--danger); border:1px solid rgba(255,59,92,.25); }
+  .us { background:rgba(255,183,0,.1); color:var(--warning); border:1px solid rgba(255,183,0,.25); }
+  .uo { background:rgba(0,255,136,.08); color:var(--accent); border:1px solid rgba(0,255,136,.18); }
+  .del-btn { width:26px;height:26px; background:none; border:1px solid transparent; border-radius:7px; color:var(--muted); cursor:pointer; display:flex;align-items:center;justify-content:center; font-size:12px; transition:.2s; }
+  .del-btn:hover { border-color:var(--danger); color:var(--danger); background:rgba(255,59,92,.07); }
+
+  /* CALENDAR */
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-nav-btn { background:var(--surface); border:1px solid var(--border); border-radius:7px; width:28px;height:28px; color:var(--text); cursor:pointer; font-size:14px; display:flex;align-items:center;justify-content:center; transition:.2s; }
+  .cal-nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .cal-month-lbl { font-size:13px; font-weight:700; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-hdr { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; padding:3px 0 7px; }
+  .cday { aspect-ratio:1; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; font-family:'Space Mono',monospace; position:relative; transition:.15s; border:1px solid transparent; cursor:default; }
+  .cday.empty { opacity:0; pointer-events:none; }
+  .cday.today { border-color:var(--accent); color:var(--accent); font-weight:700; }
+  .cday.payday { background:rgba(0,255,136,.1); border-color:rgba(0,255,136,.25); color:var(--accent); }
+  .cday.has-exp { background:rgba(255,107,53,.09); border-color:rgba(255,107,53,.25); color:var(--accent2); }
+  .cday.has-exp.crit { background:rgba(255,59,92,.13); border-color:rgba(255,59,92,.35); color:var(--danger); }
+  .cday.thu { background:rgba(124,58,237,.08); border-color:rgba(124,58,237,.2); }
+  .cday:hover:not(.empty) { transform:scale(1.12); z-index:2; }
+  .cdot { width:4px;height:4px;border-radius:50%;background:currentColor;margin-top:2px; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+  .leg-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--muted); }
+  .leg-dot { width:9px;height:9px;border-radius:3px; }
+
+  /* ALLOCATION */
+  .alloc-list { display:flex; flex-direction:column; gap:11px; }
+  .pc-group { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .pc-hdr { padding:11px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .pc-label { display:flex; align-items:center; gap:9px; font-size:12px; font-weight:700; }
+  .pc-tag { font-family:'Space Mono',monospace; font-size:10px; padding:2px 7px; border-radius:5px; background:rgba(0,255,136,.1); color:var(--accent); border:1px solid rgba(0,255,136,.2); }
+  .pc-bal { font-family:'Space Mono',monospace; font-size:12px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .used { color:var(--accent2); }
+  .ok-rem { color:var(--accent); }
+  .over-rem { color:var(--danger); }
+  .bbar { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin:0 14px 10px; }
+  .bfill { height:100%; border-radius:2px; background:var(--accent); transition:width .5s ease; }
+  .bfill.over { background:var(--danger); }
+  .pc-exps { padding:0 14px 10px; display:flex; flex-direction:column; gap:5px; }
+  .mini-exp { display:flex; align-items:center; justify-content:space-between; padding:7px 9px; background:var(--card); border-radius:7px; font-size:11px; gap:7px; }
+  .mname { flex:1; font-weight:600; }
+  .mdate { color:var(--muted); font-family:'Space Mono',monospace; font-size:10px; }
+  .mamt { font-family:'Space Mono',monospace; color:var(--accent2); font-weight:700; }
+
+  /* EMPTY */
+  .empty-st { text-align:center; padding:36px 20px; color:var(--muted); }
+  .empty-st .ei { font-size:36px; margin-bottom:10px; opacity:.45; }
+  .empty-st p { font-size:12px; }
+
+  /* SCROLLABLE */
+  .scroll { max-height:370px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+
+  /* TOAST */
+  .toast-wrap { position:fixed; bottom:22px; right:22px; z-index:999; display:flex; flex-direction:column; gap:7px; }
+  .toast { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:11px 16px; font-size:12px; display:flex; align-items:center; gap:9px; animation:tin .3s ease; box-shadow:0 8px 28px rgba(0,0,0,.4); max-width:300px; }
+  .toast.s { border-color:var(--accent); }
+  .toast.e { border-color:var(--danger); }
+  .toast.i { border-color:var(--accent3); }
+  @keyframes tin { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+  footer { text-align:center; padding:20px; color:var(--muted); font-size:11px; font-family:'Space Mono',monospace; border-top:1px solid var(--border); margin-top:4px; }
+
+  @media(max-width:500px){
+    .payday-banner{flex-direction:column;}
+    .header-stats{gap:6px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo"><div class="logo-dot"></div>PAY<span>DAY</span></div>
+      <div class="header-stats">
+        <div class="stat-pill"><span class="lbl">BALANCE</span><span class="val" id="balDisplay">$0.00</span></div>
+        <div class="stat-pill red"><span class="lbl">OWED</span><span class="val" id="owedDisplay">$0.00</span></div>
+        <div class="stat-pill yellow"><span class="lbl">EXPENSES</span><span class="val" id="countDisplay">0</span></div>
+        <div class="stat-pill"><span class="lbl">NEXT PAY</span><span class="val" id="nextPayDisplay">—</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAYDAY BANNER -->
+  <div class="payday-banner">
+    <div class="payday-info">
+      <h2>⚡ Next Paycheck</h2>
+      <div class="days-left" id="daysLeft">—</div>
+      <div class="days-sub" id="nextPayDate">Loading...</div>
+    </div>
+    <div class="payday-schedule" id="paycheckSchedule"></div>
+  </div>
+
+  <!-- GITHUB BAR -->
+  <div class="github-bar">
+    <div class="gh-info">
+      <div class="gh-icon">⚙</div>
+      <div class="gh-text">
+        <h3>GitHub Sync</h3>
+        <p id="repoPath">expenses — not connected</p>
+      </div>
+    </div>
+    <div class="gh-actions">
+      <div class="sync-status"><div class="sdot" id="sdot"></div><span id="sstat">Enter token to connect</span></div>
+      <input type="password" id="ghToken" placeholder="GitHub Token (ghp_...)" style="width:190px;" />
+      <input type="text" id="ghUser" placeholder="username" style="width:105px;" />
+      <button class="btn-xs btn-outline" onclick="connectGH()">Connect</button>
+      <button class="btn-xs btn-green" id="pushBtn" onclick="pushGH()" disabled>↑ Push</button>
+      <button class="btn-xs btn-outline" id="pullBtn" onclick="pullGH()" disabled>↓ Pull</button>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- ADD EXPENSE -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="ptitle"><div class="picon">+</div>Add Expense</div>
+      </div>
+      <div class="pbody">
+        <div class="thu-hint">📅 Feed expenses every Thursday — review before Friday payday!</div>
+        <div class="frow"><label>Expense Name</label><input type="text" id="eName" placeholder="e.g. Rent, Netflix, Car payment..." /></div>
+        <div class="frow"><label>Amount ($)</label><input type="number" id="eAmt" placeholder="0.00" step="0.01" min="0" /></div>
+        <div class="frow"><label>Due Date / Deadline</label><input type="date" id="eDate" /></div>
+        <div class="frow"><label>Category</label>
+          <select id="eCat">
+            <option value="🏠">🏠 Housing / Rent</option>
+            <option value="🚗">🚗 Transport / Car</option>
+            <option value="🍔">🍔 Food / Groceries</option>
+            <option value="💡">💡 Utilities</option>
+            <option value="📱">📱 Subscriptions</option>
+            <option value="🏥">🏥 Health / Medical</option>
+            <option value="🛍">🛍 Shopping</option>
+            <option value="📚">📚 Education</option>
+            <option value="💰">💰 Other</option>
+          </select>
+        </div>
+        <button class="btn-add" onclick="addExpense()">Add Expense →</button>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="ptitle"><div class="picon">📆</div>Expense Calendar</div>
+      </div>
+      <div class="pbody">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+          <div class="cal-month-lbl" id="calLbl">—</div>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>Payday</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent2)"></div>Due Date</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--danger)"></div>Urgent</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent3)"></div>Input Thu</div>
+          <div class="leg-item"><div class="leg-dot" style="background:none;border:1px solid var(--accent)"></div>Today</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPENSE LIST -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="ptitle"><div class="picon">📋</div>All Expenses</div>
+        <div style="font-size:10px;color:var(--muted)">tap to mark paid</div>
+      </div>
+      <div class="pbody scroll">
+        <div class="expense-list" id="expList"></div>
+      </div>
+    </div>
+
+    <!-- PAYCHECK ALLOCATION -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="ptitle"><div class="picon">💳</div>Paycheck Allocation</div>
+      </div>
+      <div class="pbody scroll">
+        <div class="alloc-list" id="allocList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<footer>PAYDAY — Smart Expense Intelligence · $1,071 weekly · Synced to github.com/expenses</footer>
+
+<script>
+// ===== STATE =====
+let expenses = JSON.parse(localStorage.getItem('payday_v2') || '[]');
+let calMonth = (() => { const d = new Date(); d.setDate(1); return d; })();
+let ghConnected = false, ghToken = '', ghUser = '';
+const PAYCHECK = 1071;
+
+// ===== UTILS =====
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const fmtMoney = n => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmtDateStr = s => new Date(s + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const fmtDateObj = d => d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+const daysUntil = s => Math.ceil((new Date(s + 'T00:00:00') - today()) / 86400000);
+const urgency = s => { const d = daysUntil(s); if(d<0) return 'overdue'; if(d<=5) return 'critical'; if(d<=14) return 'soon'; return 'ok'; };
+
+function getNextFridays(n = 6) {
+  const f = []; const d = new Date(); d.setHours(0,0,0,0);
+  while(d.getDay() !== 5) d.setDate(d.getDate()+1);
+  for(let i=0;i<n;i++) { f.push(new Date(d)); d.setDate(d.getDate()+7); }
+  return f;
+}
+
+function bestPaycheck(dueDateStr) {
+  const fs = getNextFridays(10);
+  const due = new Date(dueDateStr + 'T00:00:00');
+  let best = null;
+  for(const f of fs) { if(f <= due) best = f; else break; }
+  return best || fs[0];
+}
+
+// ===== INIT =====
+function init() {
+  const di = document.getElementById('eDate');
+  const tom = new Date(); tom.setDate(tom.getDate()+1);
+  di.value = tom.toISOString().split('T')[0];
+  di.min = new Date().toISOString().split('T')[0];
+  renderAll();
+  updateBanner();
+  setInterval(updateBanner, 60000);
+}
+
+// ===== BANNER =====
+function updateBanner() {
+  const fs = getNextFridays(3);
+  const next = fs[0];
+  const diff = Math.ceil((next - today()) / 86400000);
+  document.getElementById('daysLeft').textContent = diff === 0 ? 'TODAY! 🎉' : diff + (diff===1?' day':' days');
+  document.getElementById('nextPayDate').textContent = fmtDateObj(next);
+  document.getElementById('nextPayDisplay').textContent = fmtDateStr(next.toISOString().split('T')[0]);
+  const s = document.getElementById('paycheckSchedule');
+  s.innerHTML = fs.map((f,i) => `
+    <div class="pay-chip${i===0?' next':''}">
+      <div class="pdate">${fmtDateObj(f)}</div>
+      <div class="pamount">${fmtMoney(PAYCHECK)}</div>
+      <div class="plabel">${i===0?'NEXT':i===1?'2ND':'3RD'}</div>
+    </div>`).join('');
+}
+
+// ===== ADD =====
+function addExpense() {
+  const name = document.getElementById('eName').value.trim();
+  const amt = parseFloat(document.getElementById('eAmt').value);
+  const date = document.getElementById('eDate').value;
+  const cat = document.getElementById('eCat').value;
+  if(!name) return toast('Please enter an expense name','e');
+  if(!amt||amt<=0) return toast('Please enter a valid amount','e');
+  if(!date) return toast('Please pick a due date','e');
+  const pc = bestPaycheck(date);
+  expenses.push({ id:uid(), name, amount:amt, date, category:cat, paid:false, addedOn:new Date().toISOString(), assignedPaycheck: pc.toISOString().split('T')[0] });
+  save(); renderAll();
+  document.getElementById('eName').value='';
+  document.getElementById('eAmt').value='';
+  const days = daysUntil(date);
+  const u = urgency(date);
+  toast(u==='critical'||u==='overdue' ? `⚠️ "${name}" due in ${days} days — urgent!` : `✅ "${name}" → use ${fmtDateObj(pc)} paycheck`, u==='critical'||u==='overdue'?'e':'s');
+}
+
+function togglePaid(id) {
+  const e = expenses.find(x=>x.id===id);
+  if(e){ e.paid = !e.paid; save(); renderAll(); }
+}
+
+function delExp(id) {
+  expenses = expenses.filter(x=>x.id!==id);
+  save(); renderAll();
+  toast('Expense removed','i');
+}
+
+// ===== RENDER =====
+function renderAll() { renderList(); renderCal(); renderAlloc(); updateHeader(); }
+
+function updateHeader() {
+  const u = expenses.filter(e=>!e.paid);
+  document.getElementById('owedDisplay').textContent = fmtMoney(u.reduce((s,e)=>s+e.amount,0));
+  document.getElementById('countDisplay').textContent = u.length;
+  document.getElementById('balDisplay').textContent = '$0.00';
+}
+
+function renderList() {
+  const el = document.getElementById('expList');
+  const sorted = [...expenses].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!sorted.length){
+    el.innerHTML=`<div class="empty-st"><div class="ei">💸</div><p>No expenses yet.<br>Add your first one!</p></div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(e => {
+    const u = e.paid?'':urgency(e.date);
+    const days = daysUntil(e.date);
+    const dtxt = e.paid?'PAID':days<0?'OVERDUE':days===0?'DUE TODAY':`${days}d left`;
+    const ucl = (u==='critical'||u==='overdue')?'uc':u==='soon'?'us':'uo';
+    const pc = e.assignedPaycheck ? fmtDateStr(e.assignedPaycheck) : '—';
+    return `
+      <div class="exp-item${e.paid?' paid':''}" onclick="togglePaid('${e.id}')">
+        <div class="exp-left">
+          <div class="exp-ico">${e.category}</div>
+          <div class="exp-info">
+            <div class="ename">${e.name}</div>
+            <div class="emeta">Due ${fmtDateStr(e.date)} · Pay w/ ${pc}</div>
+          </div>
+        </div>
+        <div class="exp-right">
+          <span class="ubadge ${ucl}">${dtxt}</span>
+          <span class="eamt">${fmtMoney(e.amount)}</span>
+          <button class="del-btn" onclick="event.stopPropagation();delExp('${e.id}')">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderCal() {
+  const yr = calMonth.getFullYear(), mo = calMonth.getMonth();
+  document.getElementById('calLbl').textContent = calMonth.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>{
+    const h=document.createElement('div'); h.className='cal-hdr'; h.textContent=d; grid.appendChild(h);
+  });
+  const firstDay = new Date(yr,mo,1).getDay();
+  const daysInMo = new Date(yr,mo+1,0).getDate();
+  const td = today();
+  const fridays = new Set(), thursdays = new Set();
+  const d = new Date(yr,mo,1);
+  while(d.getMonth()===mo){ if(d.getDay()===5)fridays.add(d.getDate()); if(d.getDay()===4)thursdays.add(d.getDate()); d.setDate(d.getDate()+1); }
+  const expDays = {};
+  expenses.forEach(e=>{
+    const ed = new Date(e.date+'T00:00:00');
+    if(ed.getFullYear()===yr&&ed.getMonth()===mo){ const day=ed.getDate(); if(!expDays[day])expDays[day]=[]; expDays[day].push(e); }
+  });
+  for(let i=0;i<firstDay;i++){ const c=document.createElement('div'); c.className='cday empty'; grid.appendChild(c); }
+  for(let day=1;day<=daysInMo;day++){
+    const cell=document.createElement('div');
+    const cd=new Date(yr,mo,day); cd.setHours(0,0,0,0);
+    let cls='cday';
+    let title='';
+    if(fridays.has(day)){ cls+=' payday'; title=`💰 Payday: ${fmtMoney(PAYCHECK)}`; }
+    if(thursdays.has(day)){ cls+=' thu'; title+=(title?'\n':'')+'📝 Expense input day'; }
+    if(expDays[day]){
+      const hasUrgent = expDays[day].some(e=>urgency(e.date)==='critical'||urgency(e.date)==='overdue');
+      cls += hasUrgent?' has-exp crit':' has-exp';
+      title += (title?'\n':'') + expDays[day].map(e=>`${e.name}: ${fmtMoney(e.amount)}`).join('\n');
+    }
+    if(cd.getTime()===td.getTime()) cls+=' today';
+    cell.className=cls;
+    if(title) cell.title=title;
+    cell.innerHTML=`${day}${expDays[day]?'<div class="cdot"></div>':''}`;
+    grid.appendChild(cell);
+  }
+}
+
+function changeMonth(dir) { calMonth.setMonth(calMonth.getMonth()+dir); renderCal(); }
+
+function renderAlloc() {
+  const el = document.getElementById('allocList');
+  const unpaid = expenses.filter(e=>!e.paid);
+  if(!unpaid.length){
+    el.innerHTML=`<div class="empty-st"><div class="ei">🎯</div><p>Add expenses to see<br>paycheck allocation</p></div>`;
+    return;
+  }
+  const groups = {};
+  unpaid.forEach(e=>{ const k=e.assignedPaycheck||'unassigned'; if(!groups[k])groups[k]=[]; groups[k].push(e); });
+  el.innerHTML = Object.keys(groups).sort().map(key=>{
+    const items=groups[key];
+    const total=items.reduce((s,e)=>s+e.amount,0);
+    const rem=PAYCHECK-total;
+    const pct=Math.min((total/PAYCHECK)*100,100);
+    const over=total>PAYCHECK;
+    const keyFull=key!=='unassigned'?fmtDateObj(new Date(key+'T00:00:00')):'Unassigned';
+    return `
+      <div class="pc-group">
+        <div class="pc-hdr">
+          <div class="pc-label">💳 <span class="pc-tag">${keyFull}</span></div>
+          <div class="pc-bal">
+            <span class="used">${fmtMoney(total)}</span>
+            <span style="color:var(--muted)">/ ${fmtMoney(PAYCHECK)}</span>
+            <span class="${over?'over-rem':'ok-rem'}">${over?'⚠ -'+fmtMoney(total-PAYCHECK):'✓ +'+fmtMoney(rem)}</span>
+          </div>
+        </div>
+        <div class="bbar"><div class="bfill${over?' over':''}" style="width:${pct}%"></div></div>
+        <div class="pc-exps">
+          ${items.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>`
+            <div class="mini-exp">
+              <span>${e.category}</span>
+              <span class="mname">${e.name}</span>
+              <span class="mdate">due ${fmtDateStr(e.date)}</span>
+              <span class="mamt">${fmtMoney(e.amount)}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ===== SAVE =====
+function save() { localStorage.setItem('payday_v2', JSON.stringify(expenses)); }
+
+// ===== GITHUB =====
+async function connectGH() {
+  const t=document.getElementById('ghToken').value.trim();
+  const u=document.getElementById('ghUser').value.trim();
+  if(!t||!u) return toast('Enter GitHub token and username','e');
+  ghToken=t; ghUser=u;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${u}/expenses`,{headers:{Authorization:`token ${t}`,Accept:'application/vnd.github+json'}});
+    if(r.ok){ setGHConnected(u); toast('✅ Connected to github.com/'+u+'/expenses','s'); }
+    else if(r.status===404){ toast('Repo not found — creating...','i'); await createRepo(t,u); }
+    else throw new Error('HTTP '+r.status);
+  } catch(e) { ghFail(); toast('❌ '+e.message,'e'); }
+}
+
+async function createRepo(t,u) {
+  const r=await fetch('https://api.github.com/user/repos',{method:'POST',headers:{Authorization:`token ${t}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({name:'expenses',description:'PAYDAY expense data',private:false,auto_init:true})});
+  if(r.ok){ setGHConnected(u); toast('🎉 Repo created & connected!','s'); }
+  else throw new Error(await r.text());
+}
+
+function setGHConnected(u) {
+  ghConnected=true;
+  document.getElementById('sdot').className='sdot on';
+  document.getElementById('sstat').textContent='Connected: '+u+'/expenses';
+  document.getElementById('repoPath').textContent=u+'/expenses — connected ✓';
+  document.getElementById('pushBtn').disabled=false;
+  document.getElementById('pullBtn').disabled=false;
+}
+
+function ghFail() {
+  document.getElementById('sdot').className='sdot err';
+  document.getElementById('sstat').textContent='Connection failed';
+}
+
+async function pushGH() {
+  if(!ghConnected) return toast('Connect GitHub first','e');
+  const content=JSON.stringify({expenses,lastUpdated:new Date().toISOString(),weeklyPaycheck:PAYCHECK},null,2);
+  const encoded=btoa(unescape(encodeURIComponent(content)));
+  try {
+    let sha='';
+    const g=await fetch(`https://api.github.com/repos/${ghUser}/expenses/contents/expenses.json`,{headers:{Authorization:`token ${ghToken}`,Accept:'application/vnd.github+json'}});
+    if(g.ok){ const d=await g.json(); sha=d.sha; }
+    const r=await fetch(`https://api.github.com/repos/${ghUser}/expenses/contents/expenses.json`,{method:'PUT',headers:{Authorization:`token ${ghToken}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:`Update expenses — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}`,content:encoded,...(sha?{sha}:{})})});
+    r.ok ? toast('✅ Pushed to GitHub!','s') : toast('❌ Push failed: HTTP '+r.status,'e');
+  } catch(e){ toast('❌ '+e.message,'e'); }
+}
+
+async function pullGH() {
+  if(!ghConnected) return toast('Connect GitHub first','e');
+  try {
+    const r=await fetch(`https://api.github.com/repos/${ghUser}/expenses/contents/expenses.json`,{headers:{Authorization:`token ${ghToken}`,Accept:'application/vnd.github+json'}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const decoded=decodeURIComponent(escape(atob(d.content)));
+    const parsed=JSON.parse(decoded);
+    expenses=parsed.expenses||[];
+    save(); renderAll();
+    toast('✅ Pulled from GitHub!','s');
+  } catch(e){ toast('❌ '+e.message,'e'); }
+}
+
+// ===== TOAST =====
+function toast(msg,type='i') {
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg; w.appendChild(t);
+  setTimeout(()=>{ t.style.cssText='opacity:0;transform:translateY(8px);transition:all .3s'; setTimeout(()=>t.remove(),300); },3500);
+}
+
+init();
+</script>
+</body>
+</html>
